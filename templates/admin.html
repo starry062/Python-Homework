@@ -1,0 +1,209 @@
+{% extends "base.html" %}
+
+{% block title %}管理后台{% endblock %}
+
+{% block content %}
+<div class="container">
+    {% with messages = get_flashed_messages(with_categories=true) %}
+        {% if messages %}
+            {% for category, message in messages %}
+                <div class="alert alert-{{ category }} alert-dismissible fade show mt-3">
+                    {{ message }}
+                    <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
+                </div>
+            {% endfor %}
+        {% endif %}
+    {% endwith %}
+    <h2 class="my-4">管理后台</h2>
+    
+    <!-- ==================== 管理员信息区域 ==================== -->
+    <!-- 显示当前登录管理员的基本信息 -->
+    <div class="card mb-4">
+        <div class="card-header">
+            <h5>管理员信息</h5>
+        </div>
+        <div class="card-body">
+            {% if admin %}
+                <p><strong>用户名：</strong>{{ admin.adminName }}</p>
+            {% else %}
+                <p class="text-danger">未获取到管理员信息</p>
+            {% endif %}
+        </div>
+    </div>
+
+    <!-- ==================== 用户数据管理区域 ==================== -->
+    <!-- 1. 用户数据导入功能 -->
+    <!-- 允许管理员上传JSON文件批量导入用户数据 -->
+    <div class="card mb-4">
+        <div class="card-header">
+            <h5>导入用户数据</h5>
+        </div>
+        <div class="card-body">
+            <form method="post" action="/user_import_export" enctype="multipart/form-data">
+                <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
+                <div class="mb-3">
+                    <label for="json_file" class="form-label">选择JSON文件</label>
+                    <input class="form-control" type="file" id="json_file" name="json_file" accept=".json" required>
+                </div>
+                <button type="submit" class="btn btn-primary">导入用户</button>
+            </form>
+        </div>
+    </div>
+
+    <!-- 2. 用户数据管理表格 -->
+    <!-- 显示所有用户信息，并提供导出功能 -->
+    <div class="card mb-4">
+        <div class="card-header d-flex justify-content-between align-items-center">
+            <h5>用户列表</h5>
+            <a href="/user_import_export?file_path=users_export.json" class="btn btn-sm btn-outline-secondary">导出用户数据</a>
+        </div>
+        <div class="card-body">
+            <div class="table-responsive">
+                <table class="table table-striped">
+                    <thead>
+                        <tr>
+                            <th>用户名</th>
+                            <th>电话号码</th>
+                            <th>邮箱</th>
+                            <th>操作</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        {% if users %}
+                            {% for u in users %}
+                            <tr>
+                                <td>{{ u.nickname if u else '' }}</td>
+                                <td>{{ u.phone_number if u else '' }}</td>
+                                <td>{{ u.email if u else '' }}</td>
+                                <td>
+                                    <button class="btn btn-sm btn-outline-danger delete-user-btn" 
+                                            data-nickname="{{ u.nickname if u else '' }}" 
+                                            data-phone="{{ u.phone_number if u else '' }}">
+                                        删除
+                                    </button>
+                                </td>
+                            </tr>
+                            {% endfor %}
+                        {% else %}
+                            <tr>
+                                <td colspan="4" class="text-center">没有用户数据</td>
+                            </tr>
+                        {% endif %}
+                    </tbody>
+                </table>
+            </div>
+        </div>
+    </div>
+
+    <!-- ==================== 帖子管理区域 ==================== -->
+    <!-- 显示所有帖子信息，提供查看和删除功能 -->
+    <div class="card">
+        <div class="card-header">
+            <h5>帖子列表</h5>
+        </div>
+        <div class="card-body">
+            <div class="table-responsive">
+                <table class="table table-striped">
+                    <thead>
+                        <tr>
+                            <th>ID</th>
+                            <th>标题</th>
+                            <th>作者</th>
+                            <th>发布时间</th>
+                            <th>操作</th>
+                        </tr>
+                    </thead>
+                    <tbody id="postTable">
+                        {% if posts %}
+                            {% for post in posts %}
+                            <tr>
+                                <td>{{ loop.index }}</td>
+                                <td>{{ post.title if post else '' }}</td>
+                                <td>{{ post.user_id if post else '' }}</td>
+                                <td>{{ post.date if post else '' }}</td>
+                                <td>
+                                    <a href="#" class="btn btn-sm btn-outline-primary">查看</a>
+                                    <a class="btn btn-sm btn-outline-danger delete-btn">删除</a>
+                                </td>
+                            </tr>
+                            {% endfor %}
+                        {% else %}
+                            <tr>
+                                <td colspan="5" class="text-center">没有帖子数据</td>
+                            </tr>
+                        {% endif %}
+                    </tbody>
+                </table>
+            </div>
+        </div>
+    </div>
+</div>
+<script>
+    document.getElementById('postTable').addEventListener('click', function(e) {
+        if(e.target.classList.contains('delete-btn')) {
+            e.preventDefault();
+            const postRow = e.target.closest('tr');
+            const postId = postRow.querySelector('td:nth-child(1)').textContent;
+            const userId = postRow.querySelector('td:nth-child(3)').textContent;
+
+            if (confirm('确定要删除该帖子吗？')) {
+                fetch(`/post?post_id=${postId}&user_id=${userId}`, {
+                    method: 'DELETE',
+                        headers: {
+                            'Content-Type': 'application/json',
+                            'X-CSRFToken': '{{ csrf_token() }}'
+                        }
+                })
+                .then(response => response.json())
+                .then(data => {
+                    if (data.code === 200) {
+                        alert('帖子已删除');
+                        postRow.remove();
+                    } else {
+                        alert(data.message);
+                    }
+                })
+                .catch(error => {
+                    console.error('Error:', error);
+                    alert('删除失败，请稍后再试');
+                });
+            }
+        }
+
+    });
+</script>
+<script>
+    // 用户删除功能
+    document.addEventListener('DOMContentLoaded', function() {
+        document.querySelectorAll('.delete-user-btn').forEach(btn => {
+            btn.addEventListener('click', function() {
+                const nickname = this.getAttribute('data-nickname');
+                const phone = this.getAttribute('data-phone');
+                
+                if (confirm(`确定要删除用户 ${nickname} 吗？`)) {
+                    fetch(`/user?nickname=${encodeURIComponent(nickname)}&phone_number=${phone}`, {
+                        method: 'DELETE',
+                        headers: {
+                            'Content-Type': 'application/json',
+                            'X-CSRFToken': '{{ csrf_token() }}'
+                        }
+                    })
+                    .then(response => response.json())
+                    .then(data => {
+                        if (data.code === 200) {
+                            alert(data.message);
+                            this.closest('tr').remove();
+                        } else {
+                            alert(data.message);
+                        }
+                    })
+                    .catch(error => {
+                        console.error('Error:', error);
+                        alert('删除失败，请稍后再试');
+                    });
+                }
+            });
+        });
+    });
+</script>
+{% endblock %}

@@ -1,0 +1,18 @@
+[
+    {
+        "_id": "6859763e878854315c6e36f5",
+        "nickname": "David7545",
+        "phone_number": 158765,
+        "email": "Dav1234@qq.com",
+        "password": "NewPassword123",
+        "salt": "$2b$12$mPlEqhiY1gVg9jQqe//wOe"
+    },
+    {
+        "_id": "6859775b586a40fdbe0b3935",
+        "nickname": "Amy0989",
+        "phone_number": 15975245,
+        "email": "amy5245@163.com",
+        "password": "$2b$12$/7DYER/onNPLSx40lYoGEe1qbqJdbi3cpzIINtUM9WhvDDOpSk8v6",
+        "salt": "$2b$12$/7DYER/onNPLSx40lYoGEe"
+    }
+]

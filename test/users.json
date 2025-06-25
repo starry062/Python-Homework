@@ -1,0 +1,14 @@
+[
+    {
+        "nickname": "Alice",
+        "phone_number": "12389546",
+        "email": "87945624@gmail.com",
+        "password" : "Alice123"
+    },
+    {
+        "nickname": "Bob",
+        "phone_number": "98765432",
+        "email": "87945248@qq.com",
+        "password" : "Bob123"
+    }
+]

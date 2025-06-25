@@ -1,0 +1,82 @@
+{% extends "base.html" %}
+
+{% block title %}用户注册{% endblock %}
+
+{% block content %}
+<div class="row justify-content-center">
+    <div class="col-md-6">
+        <h2 class="text-center mb-4">用户注册</h2>
+
+        {% if messages %}
+        {% for message in messages %}
+        <div class="alert alert-{{ message.tags }}">{{ message }}</div>
+        {% endfor %}
+        {% endif %}
+
+        <form id="registerForm" onsubmit="return false;">
+            <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
+            <div class="mb-3">
+                <label for="username" class="form-label">用户名</label>
+                <input type="text" class="form-control" id="name" name="name" required>
+            </div>
+            <div class="mb-3">
+                <label for="username" class="form-label">账户</label>
+                <input type="text" class="form-control" id="account" name="account" required>
+            </div>
+            <div class="mb-3">
+                <label for="password" class="form-label">密码</label>
+                <input type="password" class="form-control" id="password" name="password" required>
+            </div>
+            <div class="mb-3">
+                <label for="password_confirm" class="form-label">确认密码</label>
+                <input type="password" class="form-control" id="password_confirm" name="password_confirm" required>
+            </div>
+            <button type="submit" class="btn btn-primary w-100">注册</button>
+        </form>
+
+        <div class="mt-3 text-center">
+            <p>已有账号？<a href="/login">立即登录</a></p>
+        </div>
+    </div>
+</div>
+<script>
+    document.getElementById('registerForm').addEventListener('submit', function(e) {
+        e.preventDefault();
+        const username = document.getElementById('name').value;
+        const account = document.getElementById('account').value;
+        const password = document.getElementById('password').value;
+        const passwordConfirm = document.getElementById('password_confirm').value;
+
+        if (password !== passwordConfirm) {
+            alert('两次输入的密码不一致，请重新输入！');
+            return;
+        }
+
+        fetch('/api/register', {
+            method: 'POST',
+            credentials: 'include',
+            headers: {
+                'Content-Type': 'application/json',
+                'X-CSRFToken': '{{ csrf_token() }}'
+            },
+            body: JSON.stringify({
+                adminName: username,
+                adminAccount: account,
+                adminPassword: password
+            })
+        })
+        .then(response => response.json())
+        .then(data => {
+            if (data.code === 200) {
+                window.location.href = '/login';
+            } else {
+                alert(data.message);
+            }
+        })
+        .catch(error => {
+            console.error('Error:', error);
+            alert('注册失败，请稍后再试！');
+        });
+    });
+</script>
+{% endblock %}
