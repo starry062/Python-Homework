@@ -9,7 +9,7 @@
   - Flask框架
   - Flask-RESTful (API开发)
   - Flask-WTF (CSRF保护)
-  - SQLite数据库
+  - MongoDB数据库
 
 - **前端**:
   - Bootstrap 5 (CSS框架)
@@ -105,4 +105,6 @@ http://localhost:5000
 - 消息提示系统
 
 ## 截图示例
-
+![登陆界面](resource/login.png)
+![管理后台](resource/dashboard.png)
+![错误处理](resource/error_handle.png)
